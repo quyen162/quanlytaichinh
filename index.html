@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản Lý Tài Chính</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #fff;
+        }
+
+        .container {
+            margin: 20px 400px;
+        }
+
+        .input-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            text-align: left;
+            position: relative;
+        }
+
+        .input-group label {
+            font-weight: bold;
+            color: #8b7d6b;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .input-group input {
+            padding: 5px 5px 5px 40px;
+            border: 1px solid #d4c4a8;
+            border-radius: 3px;
+            width: 200px;
+        }
+
+
+        .input-row button {
+            background: none;
+            border: 2px solid #D9C89C;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 40px;
+            color: #d4c4a8;
+            align-self: flex-end;
+            margin-bottom: 25px;
+            width: 52px;
+            height: 52px;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            padding: 10px 60px;
+            /* tăng padding ngang */
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            vertical-align: middle;
+        }
+
+        th {
+            background-color: #f7e4bc;
+        }
+
+        td {
+            background-color: #fffaf0;
+        }
+
+        td:nth-child(1) {
+            text-align: center;
+            /* ngày tháng căn giữa */
+            width: 120px;
+        }
+
+        th:nth-child(3) {
+            text-align: right;
+            white-space: nowrap;
+            width: 180px;
+            /* cố định chiều rộng để canh đều */
+        }
+
+        .balance {
+            font-weight: bold;
+        }
+
+        .income-total {
+            text-align: right;
+            padding-right: 60px;
+            /* phù hợp với padding bảng */
+        }
+
+        .check-icon {
+            color: green;
+        }
+
+        .edit-icon {
+            color: blue;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+
+        .income-input {
+            width: 120px;
+            text-align: right;
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+        }
+
+        .edit-icon,
+        .delete-icon {
+            cursor: pointer;
+            margin-left: 4px;
+            margin-right: 12px;
+            color: #666;
+            visibility: hidden;
+        }
+
+        tr.expense-row:hover .edit-icon,
+        tr.expense-row:hover .delete-icon {
+            visibility: visible;
+        }
+
+        .income-input-edit {
+            width: 120px;
+            padding: 3px;
+        }
+
+        .summary-row td {
+            background-color: #ffffff !important;
+        }
+
+        .input-row button:hover {
+            background-color: #f7e4bc;
+            color: #5c4b1a;
+            transform: scale(1.1);
+            transition: all 0.2s ease;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .edit-icon:hover,
+        .delete-icon:hover {
+            color: #c95;
+            transform: scale(1.2);
+            transition: all 0.2s ease;
+        }
+
+        .summary-row .edit-icon {
+            visibility: visible;
+        }
+
+        .summary-row .edit-icon:hover {
+            visibility: visible;
+            transform: scale(1.2);
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="container">
+        <div class="input-row">
+            <div class="input-group">
+                <label>Date</label>
+                <input type="text" id="dateInput" placeholder="dd-mm-yy" value="">
+
+            </div>
+            <div class="input-group">
+                <label>Description</label>
+                <input type="text" id="descriptionInput" placeholder="Enter Description">
+            </div>
+            <div class="input-group">
+                <label>Amount</label>
+                <input type="text" id="amountInput" placeholder="Enter Amount">
+            </div>
+            <button id="addButton">+</button>
+        </div>
+
+        <table id="expenseTable">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Description</th>
+                    <th>Expenses</th>
+                </tr>
+            </thead>
+            <tbody id="expenseBody">
+                <!-- Dữ liệu chi tiêu sẽ được thêm tại đây -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        flatpickr("#dateInput", {
+            dateFormat: "d-m-Y"
+        });
+
+        let expenses = [];
+
+        function renderTable() {
+            const body = document.getElementById("expenseBody");
+            body.innerHTML = '';
+
+            const grouped = {};
+            expenses.forEach(entry => {
+                const [day, month, year] = entry.date.split('-');
+                const monthKey = `${month}-${year}`;
+                if (!grouped[monthKey]) grouped[monthKey] = [];
+                grouped[monthKey].push(entry);
+            });
+
+            const sortedMonths = Object.keys(grouped).sort((a, b) => {
+                const [ma, ya] = a.split('-').map(Number);
+                const [mb, yb] = b.split('-').map(Number);
+                return new Date(yb, mb - 1) - new Date(ya, ma - 1);
+            });
+
+            sortedMonths.forEach(monthKey => {
+                const [month, year] = monthKey.split('-');
+                const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                const monthLabel = `${monthNames[parseInt(month) - 1]} ${year}`;
+
+                const entries = grouped[monthKey].sort((a, b) => {
+                    const da = a.date.split('-').reverse().join('-');
+                    const db = b.date.split('-').reverse().join('-');
+                    return new Date(db) - new Date(da);
+                });
+
+                let total = entries.reduce((sum, e) => sum + parseInt(e.amount || 0), 0);
+                let incomeEntry = entries.find(e => e._income);
+                let income = incomeEntry ? incomeEntry.income : 0;
+
+                // Tháng + Balance
+                body.innerHTML += `<tr class="summary-row">
+            <td style="color: #c95; font-weight: bold;">${monthLabel}</td>
+            <td>Balance = (Income - Total)</td>
+            <td class="income-total">${(income - total).toLocaleString()}</td>
+        </tr>`;
+
+                // Income
+                body.innerHTML += `<tr class="summary-row">
+            <td></td>
+            <td><strong>Income</strong>
+                <span id="edit-wrap-${monthKey}">
+                    <i class="fas fa-edit edit-icon" onclick="editIncome('${monthKey}', ${income})"></i>
+                </span>
+            </td>
+            <td class="income-total" id="income-${monthKey}">
+                <span id="income-val-${monthKey}">${income.toLocaleString()}</span>
+            </td>
+        </tr>`;
+
+                // Total
+                body.innerHTML += `<tr class="summary-row">
+            <td></td>
+            <td><strong>Total</strong></td>
+            <td class="income-total">${total.toLocaleString()}</td>
+        </tr>`;
+
+                // Danh sách chi tiêu
+                entries.forEach(e => {
+                    if (!e._income) {
+                        body.innerHTML += `<tr class="expense-row">
+                    <td id="date-${e.id}">${e.date}</td>
+                    <td id="desc-${e.id}">${e.description}</td>
+                    <td class="income-total" id="amt-${e.id}">
+                        <i class="fas fa-edit edit-icon" onclick="editRow(${e.id})"></i>
+                        <i class="fas fa-trash delete-icon" onclick="deleteRow(${e.id})"></i>
+                        ${parseInt(e.amount).toLocaleString()}
+                    </td>
+                </tr>`;
+                    }
+                });
+            });
+        }
+
+
+
+        function editIncome(monthKey, currentValue) {
+            const cell = document.getElementById(`income-val-${monthKey}`);
+            cell.innerHTML = `<input type="number" id="input-${monthKey}" value="${currentValue}" class="income-input" />`;
+            document.getElementById(`edit-wrap-${monthKey}`).innerHTML = `
+    <i class="fas fa-check edit-icon" onclick="saveIncome('${monthKey}')"></i>`;
+        }
+
+        function saveIncome(monthKey) {
+            const inputVal = parseInt(document.getElementById(`input-${monthKey}`).value) || 0;
+
+            // Remove old income entry
+            expenses = expenses.filter(e => !e._income || `${e.month}-${e.year}` !== monthKey);
+
+            // Add new income entry (ensure month & year as string)
+            const [m, y] = monthKey.split('-');
+            expenses.push({
+                id: Date.now(),
+                date: `01-${m}-${y}`,
+                description: "Thu nhập",
+                amount: '0',
+                income: inputVal,
+                _income: true,
+                month: m,
+                year: y
+            });
+
+            renderTable();
+
+            setTimeout(() => {
+                const editWrap = document.getElementById(`edit-wrap-${monthKey}`);
+                const incomeVal = document.getElementById(`income-val-${monthKey}`);
+                if (editWrap && incomeVal) {
+                    incomeVal.innerText = inputVal.toLocaleString();
+                    editWrap.innerHTML = `
+                <i class="fas fa-edit edit-icon" onclick="editIncome('${monthKey}', ${inputVal})"></i>`;
+                }
+            }, 0);
+        }
+
+        document.getElementById("addButton").addEventListener("click", function () {
+            const date = document.getElementById("dateInput").value;
+            const description = document.getElementById("descriptionInput").value;
+            const amount = document.getElementById("amountInput").value;
+
+            if (date && description && amount && !isNaN(parseInt(amount))) {
+                expenses.push({ id: Date.now(), date, description, amount });
+                renderTable();
+
+                document.getElementById("dateInput").value = "";
+                document.getElementById("descriptionInput").value = "";
+                document.getElementById("amountInput").value = "";
+            }
+        });
+
+        // Sample data
+        expenses = [
+            { id: 1, date: '11-06-2025', description: 'Breakfast', amount: '25000' },
+            { id: 2, date: '12-06-2025', description: 'Lunch', amount: '30000' },
+            { id: 3, date: '12-06-2025', description: 'Dinner', amount: '25000' },
+            { id: 4, date: '13-06-2025', description: 'Milktea', amount: '25000' },
+            { id: 5, date: '11-07-2025', description: 'Breakfast', amount: '25000' },
+            { id: 6, date: '11-07-2025', description: 'Lunch', amount: '30000' },
+            { id: 7, date: '12-07-2025', description: 'Dinner', amount: '25000' },
+            { id: 8, date: '13-07-2025', description: 'Milktea', amount: '25000' },
+            { id: 9, date: '01-06-2025', description: 'Thu nhập', amount: '0', income: 12000000, _income: true, month: '06', year: '2025' },
+            { id: 10, date: '01-07-2025', description: 'Thu nhập', amount: '0', income: 12000000, _income: true, month: '07', year: '2025' }
+        ];
+
+
+        renderTable();
+        function deleteRow(id) {
+            expenses = expenses.filter(e => e.id !== id);
+            renderTable();
+        }
+
+        function editRow(id) {
+            const entry = expenses.find(e => e.id === id);
+            document.getElementById(`date-${id}`).innerHTML =
+                `<input type="text" value="${entry.date}" id="edit-date-${id}" class="income-input-edit">`;
+            document.getElementById(`desc-${id}`).innerHTML =
+                `<input type="text" value="${entry.description}" id="edit-desc-${id}" class="income-input-edit">`;
+            document.getElementById(`amt-${id}`).innerHTML =
+                `<input type="text" value="${entry.amount}" id="edit-amt-${id}" class="income-input-edit">
+     <i class="fas fa-check edit-icon" onclick="saveEdit(${id})"></i>`;
+        }
+
+        function saveEdit(id) {
+            const date = document.getElementById(`edit-date-${id}`).value;
+            const desc = document.getElementById(`edit-desc-${id}`).value;
+            const amt = document.getElementById(`edit-amt-${id}`).value;
+            expenses = expenses.map(e => e.id === id ? { ...e, date, description: desc, amount: amt } : e);
+            renderTable();
+        }
+
+    </script>
+
+</body>
+
+</html>
