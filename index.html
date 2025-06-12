@@ -7,6 +7,8 @@
     <title>Quản Lý Tài Chính</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- Thêm thư viện Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -14,33 +16,53 @@
         }
 
         .container {
-            margin: 20px 400px;
+            margin: 16px 500px;
+            height: auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            gap: 0px;
+        }
+
+        /* Chỉnh chiều cao bảng */
+        .table-container {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 60vh;
         }
 
         .input-row {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 20px;
+            margin-bottom: 0px;
         }
 
         .input-group {
             text-align: left;
             position: relative;
+            margin-right: 4px;
+            /* Giảm từ 20px xuống 10px hoặc nhỏ hơn tùy ý */
+            flex: 1;
+            /* Giúp các ô co giãn đều */
+            width: 200px;
+            /* Độ rộng tối thiểu */
         }
 
         .input-group label {
             font-weight: bold;
             color: #8b7d6b;
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
 
         .input-group input {
-            padding: 5px 5px 5px 40px;
+            padding: 5px 5px 5px 16px;
             border: 1px solid #d4c4a8;
-            border-radius: 3px;
-            width: 200px;
+            border-radius: 12px;
+            width: 90%;
+            box-sizing: border-box;
+            /* Quan trọng: bao gồm padding trong width */
         }
 
 
@@ -61,13 +83,19 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 4px;
+            display: block;
+            /* Thêm dòng này */
+            max-height: 700px;
+            /* Chiều cao tối đa của bảng */
+            width: 880px;
+            overflow-y: auto;
+            /* Thanh cuộn chỉ xuất hiện khi cần */
         }
 
         th,
         td {
             padding: 10px 60px;
-            /* tăng padding ngang */
             text-align: left;
             border-bottom: 1px solid #ddd;
             vertical-align: middle;
@@ -82,16 +110,14 @@
         }
 
         td:nth-child(1) {
-            text-align: center;
-            /* ngày tháng căn giữa */
-            width: 120px;
+            text-align: left;
+            width: 100px;
         }
 
         th:nth-child(3) {
             text-align: right;
             white-space: nowrap;
             width: 180px;
-            /* cố định chiều rộng để canh đều */
         }
 
         .balance {
@@ -101,7 +127,6 @@
         .income-total {
             text-align: right;
             padding-right: 60px;
-            /* phù hợp với padding bảng */
         }
 
         .check-icon {
@@ -115,7 +140,7 @@
         }
 
         .income-input {
-            width: 120px;
+            width: 80px;
             text-align: right;
             padding: 5px 10px;
             border: 1px solid #ccc;
@@ -167,6 +192,111 @@
             visibility: visible;
             transform: scale(1.2);
         }
+
+        /* Chart Section Styles */
+        .charts-section {
+            margin-top: 100px;
+            /* khoảng cách với table */
+            margin-bottom: 160px;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background-color: #fcfcfc;
+            position: relative;
+            bottom: 40px;
+        }
+
+        .chart-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .chart-tabs button {
+            padding: 10px 15px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-bottom: 3px solid transparent;
+        }
+
+        .chart-tabs button.active {
+            font-weight: bold;
+            color: #c95;
+            border-bottom-color: #c95;
+        }
+
+        .chart-container {
+            display: none;
+            height: 400px;
+            flex-shrink: 0;
+            margin-top: 20px;
+        }
+
+        .chart-container.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chart-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .chart-filters label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .chart-filters select {
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        /* Adjust pie chart size */
+        #monthlyBreakdownChart {
+            width: 40% !important;
+            height: 100% !important;
+            margin: 0 auto;
+        }
+
+        /* Bar charts styling */
+        .bar-chart-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        #monthlyComparisonChart,
+        #yearlyComparisonChart {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        input[list] {
+            /* Kiểu dáng khi có dropdown */
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%238b7d6b" height="16" viewBox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            padding-right: 25px;
+        }
+
+        .income-input-edit[list] {
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%23666" height="12" viewBox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 5px center;
+            padding-right: 20px;
+            width: 90%;
+            /* Điều chỉnh cho vừa với ô */
+        }
     </style>
 
 </head>
@@ -177,11 +307,10 @@
             <div class="input-group">
                 <label>Date</label>
                 <input type="text" id="dateInput" placeholder="dd-mm-yy" value="">
-
             </div>
             <div class="input-group">
                 <label>Description</label>
-                <input type="text" id="descriptionInput" placeholder="Enter Description">
+                <input type="text" id="descriptionInput" placeholder="Enter Description" list="descriptionOptions">
             </div>
             <div class="input-group">
                 <label>Amount</label>
@@ -202,15 +331,82 @@
                 <!-- Dữ liệu chi tiêu sẽ được thêm tại đây -->
             </tbody>
         </table>
+
+        <!-- Khu vực biểu đồ -->
+        <section class="charts-section">
+            <h2>Analytics Dashboard</h2>
+            <div class="chart-tabs">
+                <button class="active" onclick="showChart('monthly-breakdown')">Monthly Breakdown</button>
+                <button onclick="showChart('monthly-comparison')">Monthly Comparison</button>
+                <button onclick="showChart('yearly-comparison')">Yearly Comparison</button>
+            </div>
+
+            <!-- Biểu đồ 1: Phân tích chi tiêu trong tháng -->
+            <div id="monthly-breakdown" class="chart-container active">
+                <div class="chart-filters">
+                    <label for="month-select">Select Month:</label>
+                    <select id="month-select" onchange="updateAllCharts()"></select>
+                </div>
+                <canvas id="monthlyBreakdownChart"></canvas>
+            </div>
+
+            <!-- Biểu đồ 2: So sánh giữa các tháng -->
+            <div id="monthly-comparison" class="chart-container">
+                <div class="chart-filters">
+                    <label for="year-select-monthly">Select Year:</label>
+                    <select id="year-select-monthly" onchange="updateAllCharts()"></select>
+                </div>
+                <div class="bar-chart-container">
+                    <canvas id="monthlyComparisonChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Biểu đồ 3: So sánh giữa các năm -->
+            <div id="yearly-comparison" class="chart-container">
+                <div class="bar-chart-container">
+                    <canvas id="yearlyComparisonChart"></canvas>
+                </div>
+            </div>
+        </section>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         flatpickr("#dateInput", {
-            dateFormat: "d-m-Y"
+            dateFormat: "d-m-Y",
+            defaultDate: "today"
         });
 
         let expenses = [];
+        let chartInstances = {}; // Để lưu các đối tượng biểu đồ
+
+        // Dữ liệu mẫu
+        const sampleData = [
+            { id: 1, date: '11-06-2025', description: 'Breakfast', amount: '25000' },
+            { id: 2, date: '12-06-2025', description: 'Lunch', amount: '30000' },
+            { id: 2, date: '12-06-2025', description: 'Lunch', amount: '30000' },
+            { id: 2, date: '12-06-2025', description: 'Lunch', amount: '30000' },
+            { id: 2, date: '12-06-2025', description: 'Lunch', amount: '30000' },
+            { id: 2, date: '12-06-2025', description: 'Lunch', amount: '30000' },
+            { id: 2, date: '12-06-2025', description: 'Lunch', amount: '30000' },
+            { id: 2, date: '12-06-2025', description: 'Lunch', amount: '30000' },
+            { id: 2, date: '12-06-2025', description: 'Lunch', amount: '30000' },
+            { id: 2, date: '12-06-2025', description: 'Lunch', amount: '30000' },
+            { id: 3, date: '12-06-2025', description: 'Dinner', amount: '25000' },
+            { id: 4, date: '13-06-2025', description: 'Milktea', amount: '25000' },
+            { id: 5, date: '11-07-2025', description: 'Breakfast', amount: '25000' },
+            { id: 6, date: '11-07-2025', description: 'Lunch', amount: '30000' },
+            { id: 7, date: '12-07-2025', description: 'Dinner', amount: '25000' },
+            { id: 8, date: '13-07-2025', description: 'Milktea', amount: '25000' },
+            { id: 9, date: '01-06-2025', description: 'Thu nhập', amount: '0', income: 12000000, _income: true, month: '06', year: '2025' },
+            { id: 10, date: '01-07-2025', description: 'Thu nhập', amount: '0', income: 12000000, _income: true, month: '07', year: '2025' }
+        ];
+
+        function updateUI() {
+            renderTable();
+            updateChartFilters();
+            updateAllCharts();
+        }
 
         function renderTable() {
             const body = document.getElementById("expenseBody");
@@ -247,86 +443,73 @@
 
                 // Tháng + Balance
                 body.innerHTML += `<tr class="summary-row">
-            <td style="color: #c95; font-weight: bold;">${monthLabel}</td>
-            <td>Balance = (Income - Total)</td>
-            <td class="income-total">${(income - total).toLocaleString()}</td>
-        </tr>`;
+                    <td style="color: #c95; font-weight: bold;">${monthLabel}</td>
+                    <td>Balance = (Income - Total)</td>
+                    <td class="income-total">${(income - total).toLocaleString()}</td>
+                </tr>`;
 
                 // Income
                 body.innerHTML += `<tr class="summary-row">
-    <td></td>
-    <td><strong>Income</strong></td>
-    <td class="income-total" id="income-${monthKey}">
-        <i class="fas fa-edit edit-icon" onclick="editIncome('${monthKey}', ${income})" id="edit-icon-${monthKey}"></i>
-        <span id="income-val-${monthKey}">${income.toLocaleString()}</span>
-    </td>
-</tr>`;
-
+                    <td></td>
+                    <td><strong>Income</strong></td>
+                    <td class="income-total" id="income-${monthKey}">
+                        <i class="fas fa-edit edit-icon" onclick="editIncome('${monthKey}', ${income})" id="edit-icon-${monthKey}"></i>
+                        <span id="income-val-${monthKey}">${income.toLocaleString()}</span>
+                    </td>
+                </tr>`;
 
                 // Total
                 body.innerHTML += `<tr class="summary-row">
-            <td></td>
-            <td><strong>Total</strong></td>
-            <td class="income-total">${total.toLocaleString()}</td>
-        </tr>`;
+                    <td></td>
+                    <td><strong>Total</strong></td>
+                    <td class="income-total">${total.toLocaleString()}</td>
+                </tr>`;
 
                 // Danh sách chi tiêu
                 entries.forEach(e => {
                     if (!e._income) {
                         body.innerHTML += `<tr class="expense-row">
-                    <td id="date-${e.id}">${e.date}</td>
-                    <td id="desc-${e.id}">${e.description}</td>
-                    <td class="income-total" id="amt-${e.id}">
-                        <i class="fas fa-edit edit-icon" onclick="editRow(${e.id})"></i>
-                        <i class="fas fa-trash delete-icon" onclick="deleteRow(${e.id})"></i>
-                        ${parseInt(e.amount).toLocaleString()}
-                    </td>
-                </tr>`;
+                            <td id="date-${e.id}">${e.date}</td>
+                            <td id="desc-${e.id}">${e.description}</td>
+                            <td class="income-total" id="amt-${e.id}">
+                                <i class="fas fa-edit edit-icon" onclick="editRow(${e.id})"></i>
+                                <i class="fas fa-trash delete-icon" onclick="deleteRow(${e.id})"></i>
+                                ${parseInt(e.amount).toLocaleString()}
+                            </td>
+                        </tr>`;
                     }
                 });
             });
         }
-
-
 
         function editIncome(monthKey, currentValue) {
             const cell = document.getElementById(`income-val-${monthKey}`).innerHTML =
                 `<input type="number" id="input-${monthKey}" value="${currentValue}" class="income-input" />`;
             document.getElementById(`edit-icon-${monthKey}`).outerHTML =
                 `<i class="fas fa-check edit-icon" onclick="saveIncome('${monthKey}')"></i>`;
-
         }
 
         function saveIncome(monthKey) {
             const inputVal = parseInt(document.getElementById(`input-${monthKey}`).value) || 0;
-
-            // Remove old income entry
-            expenses = expenses.filter(e => !e._income || `${e.month}-${e.year}` !== monthKey);
-
-            // Add new income entry (ensure month & year as string)
             const [m, y] = monthKey.split('-');
-            expenses.push({
-                id: Date.now(),
-                date: `01-${m}-${y}`,
-                description: "Thu nhập",
-                amount: '0',
-                income: inputVal,
-                _income: true,
-                month: m,
-                year: y
-            });
 
-            renderTable();
+            let incomeEntry = expenses.find(e => e._income && e.month === m && e.year === y);
 
-            setTimeout(() => {
-                const editWrap = document.getElementById(`edit-wrap-${monthKey}`);
-                const incomeVal = document.getElementById(`income-val-${monthKey}`);
-                if (editWrap && incomeVal) {
-                    incomeVal.innerText = inputVal.toLocaleString();
-                    editWrap.innerHTML = `
-                <i class="fas fa-edit edit-icon" onclick="editIncome('${monthKey}', ${inputVal})"></i>`;
-                }
-            }, 0);
+            if (incomeEntry) {
+                incomeEntry.income = inputVal;
+            } else {
+                expenses.push({
+                    id: Date.now(),
+                    date: `01-${m}-${y}`,
+                    description: "Thu nhập",
+                    amount: '0',
+                    income: inputVal,
+                    _income: true,
+                    month: m,
+                    year: y
+                });
+            }
+            updateUI();
         }
 
         document.getElementById("addButton").addEventListener("click", function () {
@@ -335,52 +518,393 @@
             const amount = document.getElementById("amountInput").value;
 
             if (date && description && amount && !isNaN(parseInt(amount))) {
-                expenses.push({ id: Date.now(), date, description, amount });
-                renderTable();
+                expenses.push({ id: Date.now(), date, description, amount: amount });
+                updateUI();
 
-                document.getElementById("dateInput").value = "";
                 document.getElementById("descriptionInput").value = "";
                 document.getElementById("amountInput").value = "";
+            } else {
+                alert("Please fill in all fields correctly.");
             }
         });
 
-        // Sample data
-        expenses = [
-            { id: 1, date: '11-06-2025', description: 'Breakfast', amount: '25000' },
-            { id: 2, date: '12-06-2025', description: 'Lunch', amount: '30000' },
-            { id: 3, date: '12-06-2025', description: 'Dinner', amount: '25000' },
-            { id: 4, date: '13-06-2025', description: 'Milktea', amount: '25000' },
-            { id: 9, date: '01-06-2025', description: 'Thu nhập', amount: '0', income: 12000000, _income: true, month: '06', year: '2025' },
-         
-        ];
-
-
-        renderTable();
-        function deleteRow(id) {
-            expenses = expenses.filter(e => e.id !== id);
-            renderTable();
-        }
-
         function editRow(id) {
             const entry = expenses.find(e => e.id === id);
+
+            // Tạo input với datalist
+            const editInput = `
+        <input type="text" 
+               value="${entry.description}" 
+               id="edit-desc-${id}" 
+               class="income-input-edit"
+               list="descriptionOptions">
+    `;
+
             document.getElementById(`date-${id}`).innerHTML =
-                `<input type="text" value="${entry.date}" id="edit-date-${id}" class="income-input-edit">`;
-            document.getElementById(`desc-${id}`).innerHTML =
-                `<input type="text" value="${entry.description}" id="edit-desc-${id}" class="income-input-edit">`;
+                `<input type="text" value="${entry.date}" id="edit-date-${id}" class="income-input-edit flatpickr-edit">`;
+
+            document.getElementById(`desc-${id}`).innerHTML = editInput;
+
             document.getElementById(`amt-${id}`).innerHTML =
-                `<input type="text" value="${entry.amount}" id="edit-amt-${id}" class="income-input-edit">
-     <i class="fas fa-check edit-icon" onclick="saveEdit(${id})"></i>`;
+                `<input type="number" value="${entry.amount}" id="edit-amt-${id}" class="income-input-edit">
+         <i class="fas fa-check check-icon" style="cursor:pointer; visibility:visible;" onclick="saveEdit(${id})"></i>`;
+
+            // Thêm sự kiện Enter cho các input
+            const inputs = document.querySelectorAll(`#edit-date-${id}, #edit-desc-${id}, #edit-amt-${id}`);
+            inputs.forEach(input => {
+                input.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter') {
+                        saveEdit(id);
+                    }
+                });
+            });
+
+            flatpickr(".flatpickr-edit", { dateFormat: "d-m-Y" });
         }
 
         function saveEdit(id) {
             const date = document.getElementById(`edit-date-${id}`).value;
-            const desc = document.getElementById(`edit-desc-${id}`).value;
+            const desc = document.getElementById(`edit-desc-${id}`).value.trim();
             const amt = document.getElementById(`edit-amt-${id}`).value;
+
+            if (!date || !desc || !amt) {
+                alert("All fields are required.");
+                return;
+            }
+
+            // Thêm description mới vào lịch sử nếu chưa có
+            if (!descriptionHistory.includes(desc)) {
+                descriptionHistory.push(desc);
+                updateDescriptionDatalist();
+            }
+
             expenses = expenses.map(e => e.id === id ? { ...e, date, description: desc, amount: amt } : e);
-            renderTable();
+            updateUI();
         }
 
+        // --- CHART FUNCTIONS ---
+
+        function showChart(chartId) {
+            document.querySelectorAll('.chart-container').forEach(c => c.classList.remove('active'));
+            document.getElementById(chartId).classList.add('active');
+
+            document.querySelectorAll('.chart-tabs button').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            // Update the chart when switching tabs
+            if (chartId === 'monthly-breakdown') {
+                renderMonthlyBreakdownChart();
+            } else if (chartId === 'monthly-comparison') {
+                renderMonthlyComparisonChart();
+            } else if (chartId === 'yearly-comparison') {
+                renderYearlyComparisonChart();
+            }
+        }
+
+        function updateChartFilters() {
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+            const allMonthYears = [...new Set(expenses.map(e => e.date.substring(3)))].sort((a, b) => {
+                const [ma, ya] = a.split('-').map(Number);
+                const [mb, yb] = b.split('-').map(Number);
+                return new Date(yb, mb - 1) - new Date(ya, ma - 1);
+            });
+            const monthSelect = document.getElementById('month-select');
+            const currentMonthVal = monthSelect.value;
+            monthSelect.innerHTML = allMonthYears.map(my => {
+                const [m, y] = my.split('-');
+                return `<option value="${my}">${monthNames[m - 1]} ${y}</option>`
+            }).join('');
+            if (currentMonthVal) monthSelect.value = currentMonthVal;
+
+            const allYears = [...new Set(expenses.map(e => e.date.split('-')[2]))].sort((a, b) => b - a);
+            const yearSelectMonthly = document.getElementById('year-select-monthly');
+            const currentYearVal = yearSelectMonthly.value;
+            yearSelectMonthly.innerHTML = allYears.map(y => `<option value="${y}">${y}</option>`).join('');
+            if (currentYearVal) yearSelectMonthly.value = currentYearVal;
+        }
+
+        function destroyChart(chartId) {
+            if (chartInstances[chartId]) {
+                chartInstances[chartId].destroy();
+            }
+        }
+
+        function updateAllCharts() {
+            // Only update the active chart
+            const activeChart = document.querySelector('.chart-container.active').id;
+            if (activeChart === 'monthly-breakdown') {
+                renderMonthlyBreakdownChart();
+            } else if (activeChart === 'monthly-comparison') {
+                renderMonthlyComparisonChart();
+            } else if (activeChart === 'yearly-comparison') {
+                renderYearlyComparisonChart();
+            }
+        }
+
+        // BIỂU ĐỒ 1: PHÂN TÍCH CHI TIÊU THÁNG
+        function renderMonthlyBreakdownChart() {
+            destroyChart('monthlyBreakdown');
+            const selectedMonthYear = document.getElementById('month-select').value;
+            if (!selectedMonthYear) {
+                const ctx = document.getElementById('monthlyBreakdownChart').getContext('2d');
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.font = "16px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText("No data for this month.", ctx.canvas.width / 2, 50);
+                return;
+            }
+            const [selectedMonth, selectedYear] = selectedMonthYear.split('-');
+
+            const monthExpenses = expenses.filter(e => {
+                const [, month, year] = e.date.split('-');
+                return !e._income && month === selectedMonth && year === selectedYear;
+            });
+
+            const breakdown = monthExpenses.reduce((acc, curr) => {
+                acc[curr.description] = (acc[curr.description] || 0) + parseInt(curr.amount);
+                return acc;
+            }, {});
+
+            const labels = Object.keys(breakdown);
+            const data = Object.values(breakdown);
+
+            const ctx = document.getElementById('monthlyBreakdownChart').getContext('2d');
+            chartInstances.monthlyBreakdown = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Expense Amount',
+                        data: data,
+                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 12
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: `Expense Breakdown for ${selectedMonth}/${selectedYear}`,
+                            padding: {
+                                top: 10,
+                                bottom: 20
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // BIỂU ĐỒ 2: SO SÁNH CÁC THÁNG
+        function renderMonthlyComparisonChart() {
+            destroyChart('monthlyComparison');
+            const selectedYear = document.getElementById('year-select-monthly').value;
+            if (!selectedYear) {
+                const ctx = document.getElementById('monthlyComparisonChart').getContext('2d');
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.font = "16px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText("No data for this year.", ctx.canvas.width / 2, 50);
+                return;
+            }
+
+            const yearExpenses = expenses.filter(e => !e._income && e.date.endsWith(selectedYear));
+            const monthlyTotals = Array(12).fill(0);
+
+            yearExpenses.forEach(e => {
+                const monthIndex = parseInt(e.date.split('-')[1]) - 1;
+                monthlyTotals[monthIndex] += parseInt(e.amount);
+            });
+
+            const labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+            const ctx = document.getElementById('monthlyComparisonChart').getContext('2d');
+            chartInstances.monthlyComparison = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `Total Expenses in ${selectedYear}`,
+                        data: monthlyTotals,
+                        backgroundColor: '#36A2EB'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: `Monthly Expense Comparison for ${selectedYear}`,
+                            padding: {
+                                top: 10,
+                                bottom: 20
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return context.parsed.y.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // BIỂU ĐỒ 3: SO SÁNH CÁC NĂM
+        function renderYearlyComparisonChart() {
+            destroyChart('yearlyComparison');
+            const yearlyTotals = expenses.filter(e => !e._income).reduce((acc, curr) => {
+                const year = curr.date.split('-')[2];
+                acc[year] = (acc[year] || 0) + parseInt(curr.amount);
+                return acc;
+            }, {});
+
+            const labels = Object.keys(yearlyTotals).sort();
+            const data = labels.map(year => yearlyTotals[year]);
+
+            const ctx = document.getElementById('yearlyComparisonChart').getContext('2d');
+            chartInstances.yearlyComparison = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Yearly Expenses',
+                        data: data,
+                        backgroundColor: '#FFCE56'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Yearly Expense Comparison',
+                            padding: {
+                                top: 10,
+                                bottom: 20
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return context.parsed.y.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Khởi tạo dữ liệu
+        expenses = sampleData;
+        document.addEventListener('DOMContentLoaded', updateUI);
+
+        // Mảng lưu trữ các mô tả đã nhập
+        let descriptionHistory = [];
+
+        function updateDescriptionDatalist() {
+            const datalist = document.getElementById('descriptionOptions');
+            datalist.innerHTML = '';
+
+            // Lấy các mô tả duy nhất và sắp xếp A-Z
+            const uniqueDescriptions = [...new Set(descriptionHistory)].sort();
+
+            uniqueDescriptions.forEach(desc => {
+                const option = document.createElement('option');
+                option.value = desc;
+                datalist.appendChild(option);
+            });
+        }
+
+        // Khởi tạo với giá trị từ dữ liệu hiện có và các giá trị mẫu
+        function initDescriptionHistory() {
+            descriptionHistory = [
+                ...expenses.map(e => e.description),
+                'Breakfast', 'Lunch', 'Dinner', 'Milktea', 'Coffee',
+                'Transport', 'Shopping', 'Bill', 'Entertainment'
+            ].filter(Boolean);
+            updateDescriptionDatalist();
+        }
+
+        // Gọi khi tải trang
+        document.addEventListener('DOMContentLoaded', function () {
+            initDescriptionHistory();
+            updateUI();
+        });
+
+        // Sửa lại sự kiện click của nút Add để tránh xung đột
+        const addButton = document.getElementById("addButton");
+        const originalAddHandler = addButton.onclick;
+
+        addButton.addEventListener("click", function (e) {
+            // Xử lý thêm description vào history trước
+            const description = document.getElementById("descriptionInput").value.trim();
+            if (description && !descriptionHistory.includes(description)) {
+                descriptionHistory.push(description);
+                updateDescriptionDatalist();
+            }
+
+            // Sau đó gọi hàm xử lý gốc
+            if (originalAddHandler) {
+                originalAddHandler.call(this, e);
+            } else {
+                // Phần xử lý thêm expense gốc của bạn
+                const date = document.getElementById("dateInput").value;
+                const amount = document.getElementById("amountInput").value;
+
+                if (date && description && amount && !isNaN(parseInt(amount))) {
+                    expenses.push({ id: Date.now(), date, description, amount: amount });
+                    updateUI();
+                    document.getElementById("descriptionInput").value = "";
+                    document.getElementById("amountInput").value = "";
+                } else {
+                    alert("Please fill in all fields correctly.");
+                }
+            }
+        });
+
     </script>
+
+    <datalist id="descriptionOptions">
+        <!-- Các option sẽ được thêm bằng JavaScript -->
+    </datalist>
 
 </body>
 
