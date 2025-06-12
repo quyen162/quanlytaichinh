@@ -127,7 +127,7 @@
             margin-left: 4px;
             margin-right: 12px;
             color: #666;
-            visibility: visible;
+            visibility: hidden;
         }
 
         tr.expense-row:hover .edit-icon,
@@ -254,16 +254,14 @@
 
                 // Income
                 body.innerHTML += `<tr class="summary-row">
-            <td></td>
-            <td><strong>Income</strong>
-                <span id="edit-wrap-${monthKey}">
-                    <i class="fas fa-edit edit-icon" onclick="editIncome('${monthKey}', ${income})"></i>
-                </span>
-            </td>
-            <td class="income-total" id="income-${monthKey}">
-                <span id="income-val-${monthKey}">${income.toLocaleString()}</span>
-            </td>
-        </tr>`;
+    <td></td>
+    <td><strong>Income</strong></td>
+    <td class="income-total" id="income-${monthKey}">
+        <i class="fas fa-edit edit-icon" onclick="editIncome('${monthKey}', ${income})" id="edit-icon-${monthKey}"></i>
+        <span id="income-val-${monthKey}">${income.toLocaleString()}</span>
+    </td>
+</tr>`;
+
 
                 // Total
                 body.innerHTML += `<tr class="summary-row">
@@ -292,10 +290,11 @@
 
 
         function editIncome(monthKey, currentValue) {
-            const cell = document.getElementById(`income-val-${monthKey}`);
-            cell.innerHTML = `<input type="number" id="input-${monthKey}" value="${currentValue}" class="income-input" />`;
-            document.getElementById(`edit-wrap-${monthKey}`).innerHTML = `
-    <i class="fas fa-check edit-icon" onclick="saveIncome('${monthKey}')"></i>`;
+            const cell = document.getElementById(`income-val-${monthKey}`).innerHTML =
+                `<input type="number" id="input-${monthKey}" value="${currentValue}" class="income-input" />`;
+            document.getElementById(`edit-icon-${monthKey}`).outerHTML =
+                `<i class="fas fa-check edit-icon" onclick="saveIncome('${monthKey}')"></i>`;
+
         }
 
         function saveIncome(monthKey) {
@@ -351,12 +350,8 @@
             { id: 2, date: '12-06-2025', description: 'Lunch', amount: '30000' },
             { id: 3, date: '12-06-2025', description: 'Dinner', amount: '25000' },
             { id: 4, date: '13-06-2025', description: 'Milktea', amount: '25000' },
-            { id: 5, date: '11-07-2025', description: 'Breakfast', amount: '25000' },
-            { id: 6, date: '11-07-2025', description: 'Lunch', amount: '30000' },
-            { id: 7, date: '12-07-2025', description: 'Dinner', amount: '25000' },
-            { id: 8, date: '13-07-2025', description: 'Milktea', amount: '25000' },
             { id: 9, date: '01-06-2025', description: 'Thu nhập', amount: '0', income: 12000000, _income: true, month: '06', year: '2025' },
-            { id: 10, date: '01-07-2025', description: 'Thu nhập', amount: '0', income: 12000000, _income: true, month: '07', year: '2025' }
+         
         ];
 
 
