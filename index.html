@@ -582,6 +582,13 @@
             updateUI();
         }
 
+        function deleteRow(id) {
+    if (confirm("Are you sure you want to delete this expense?")) {
+        expenses = expenses.filter(e => e.id !== id);
+        updateUI();
+    }
+}
+
         // --- CHART FUNCTIONS ---
 
         function showChart(chartId) {
